@@ -21,6 +21,7 @@ from __future__ import annotations
 import sys
 import re
 import os
+import ast
 import zlib
 import math
 import argparse
@@ -1851,13 +1852,51 @@ class Evaluator:
             return int(expr)
         except ValueError:
             pass
-        # Try evaluating as arithmetic
-        safe_globals = {'__builtins__': {}}
+        # Try evaluating as a simple arithmetic expression using ast.literal_eval
+        # or a restricted integer-only parser.  eval() is NOT used here.
+        result = self._eval_coord_arith(expr)
+        return int(result) if result is not None else 0
+
+    _COORD_ARITH_OPS = {
+        ast.Add:  lambda a, b: a + b,
+        ast.Sub:  lambda a, b: a - b,
+        ast.Mult: lambda a, b: a * b,
+        ast.FloorDiv: lambda a, b: a // b if b else 0,
+        ast.Mod:  lambda a, b: a % b if b else 0,
+        ast.USub: lambda a: -a,
+        ast.UAdd: lambda a: a,
+    }
+
+    def _eval_coord_arith(self, expr: str) -> Optional[int]:
+        """Safely evaluate a coordinate arithmetic expression (integers only)."""
         try:
-            result = eval(expr, safe_globals, {})  # noqa: S307
-            return int(result)
+            tree = ast.parse(expr, mode='eval')
+        except SyntaxError:
+            return None
+
+        def _eval(node: ast.expr) -> int:
+            if isinstance(node, ast.Expression):
+                return _eval(node.body)
+            if isinstance(node, ast.Constant) and isinstance(node.value, int):
+                return node.value
+            if isinstance(node, ast.BinOp):
+                op_type = type(node.op)
+                fn = self._COORD_ARITH_OPS.get(op_type)
+                if fn is None:
+                    raise ValueError(f"Unsupported op {op_type}")
+                return fn(_eval(node.left), _eval(node.right))
+            if isinstance(node, ast.UnaryOp):
+                op_type = type(node.op)
+                fn = self._COORD_ARITH_OPS.get(op_type)
+                if fn is None:
+                    raise ValueError(f"Unsupported unary op {op_type}")
+                return fn(_eval(node.operand))
+            raise ValueError(f"Unsupported node type {type(node)}")
+
+        try:
+            return _eval(tree.body)
         except Exception:
-            return 0
+            return None
 
     # ── node execution ────────────────────────────────────────────────────────
 
