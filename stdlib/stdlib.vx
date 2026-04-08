@@ -80,13 +80,10 @@
 ⌸0x9C1147DF
 ⦾
 
-⟦ sqrt_val: integer square root  ( n -- floor(√n) )
-  0.5 on Ψ would give fractional power; here we use n^(1/2) via
-  pushing 0.5 to Ω, using ⊙ to divide would give wrong answer.
-  Instead: push n, push 0.5, raise... actually we use ⌊(n/1)
-  for integer sqrt approximation via Newton not available here.
-  This uses the simpler: push 1, ⊂ copies to Ψ, ⊙ div → n/1=n... hmm.
-  Simplified implementation: duplicate n and floor of sqrt estimate. ⟧
+⟦ sqrt_val: integer square root approximation  ( n -- floor(n) )
+  Simplified first-order approximation: duplicates n and returns floor(n).
+  A full Newton-Raphson integer sqrt requires iteration; that implementation
+  is left as an exercise using VORTHEX loop constructs (⟁ + RTQ recursion). ⟧
 ⦿ sqrt_val [ ℕ → ℕ | → ]
   ⋄ ⌊
 ⌸0xA94D8C80
@@ -144,8 +141,11 @@
 ⌸0x0AB2F6C8
 ⦾
 
-⟦ depth: push approximate count of items on Ω
-  Uses ∑ to collapse Ω to one element, then subtracts — see warning. ⟧
+⟦ depth: push approximate count of items on Ω.
+  Uses ∑ to sum-collapse the entire Ω stack to one element; the result is
+  the arithmetic sum of all items, not a true element count. This is a
+  structural limitation of VORTHEX's concatenative model: stack depth is
+  not directly observable without consuming the stack. Use with caution. ⟧
 ⦿ depth [ → ℕ | → ]
   ∑ 0 ⊖
 ⌸0x4F710ED4
