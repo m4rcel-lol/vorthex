@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  VORTHEX TextMate Grammar
+  ========================
+  Language:     VORTHEX
+  Extension:    .vx
+  Scope root:   source.vorthex
+  Version:      1.0.0
+
+  Token Categories and Suggested Colors (using VS Code theme tokens):
+    source.vorthex                 — editor background
+    comment.block.vorthex          — #6A9955  (green, italic)
+    keyword.control.vorthex        — #C586C0  (magenta)
+    keyword.operator.vorthex       — #4FC1FF  (cyan)
+    constant.numeric.vorthex       — #B5CEA8  (light green)
+    string.quoted.vorthex          — #CE9178  (orange)
+    entity.name.function.vorthex   — #DCDCAA  (yellow)
+    support.function.vorthex       — #4EC9B0  (teal)
+    storage.type.vorthex           — #569CD6  (blue)
+    constant.language.vorthex      — #4FC1FF  (cyan)
+    invalid.illegal.vorthex        — #F44747  (red, underline)
+    meta.checksum.vorthex          — #808080  (gray)
+    meta.typesig.vorthex           — #569CD6  (blue)
+-->
+<plist version="1.0">
+<dict>
+  <key>name</key>
+  <string>VORTHEX</string>
+
+  <key>scopeName</key>
+  <string>source.vorthex</string>
+
+  <key>fileTypes</key>
+  <array>
+    <string>vx</string>
+  </array>
+
+  <key>firstLineMatch</key>
+  <string>^⟦\s*VORTHEX|^⦿\s</string>
+
+  <key>foldingStartMarker</key>
+  <string>⦿</string>
+
+  <key>foldingStopMarker</key>
+  <string>⦾</string>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!--  REPOSITORY  (reusable rule fragments)                               -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+
+  <key>repository</key>
+  <dict>
+
+    <!-- ── Comments ──────────────────────────────────────────────────────── -->
+    <key>comments</key>
+    <dict>
+      <key>name</key>
+      <string>comment.block.vorthex</string>
+      <key>begin</key>
+      <string>⟦</string>
+      <key>end</key>
+      <string>⟧</string>
+      <key>beginCaptures</key>
+      <dict>
+        <key>0</key>
+        <dict>
+          <key>name</key>
+          <string>punctuation.definition.comment.begin.vorthex</string>
+        </dict>
+      </dict>
+      <key>endCaptures</key>
+      <dict>
+        <key>0</key>
+        <dict>
+          <key>name</key>
+          <string>punctuation.definition.comment.end.vorthex</string>
+        </dict>
+      </dict>
+      <key>patterns</key>
+      <array>
+        <!-- Allow nested ⟦…⟧ inside comments (rendered as comment.block) -->
+        <dict>
+          <key>include</key>
+          <string>#comments</string>
+        </dict>
+      </array>
+    </dict>
+
+    <!-- ── Checksum Lines ─────────────────────────────────────────────────── -->
+    <key>checksum</key>
+    <dict>
+      <key>name</key>
+      <string>meta.checksum.vorthex</string>
+      <key>match</key>
+      <string>⌸\s*0[xX][0-9A-Fa-f]{8}</string>
+      <key>captures</key>
+      <dict>
+        <key>0</key>
+        <dict>
+          <key>name</key>
+          <string>constant.other.checksum.vorthex</string>
+        </dict>
+      </dict>
+    </dict>
+
+    <!-- ── Function Definition Keywords ─────────────────────────────────── -->
+    <key>function-keywords</key>
+    <dict>
+      <key>patterns</key>
+      <array>
+        <dict>
+          <key>name</key>
+          <string>keyword.control.function.open.vorthex</string>
+          <key>match</key>
+          <string>⦿</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>keyword.control.function.close.vorthex</string>
+          <key>match</key>
+          <string>⦾</string>
+        </dict>
+      </array>
+    </dict>
+
+    <!-- ── Type Signatures ────────────────────────────────────────────────── -->
+    <key>type-signature</key>
+    <dict>
+      <key>name</key>
+      <string>meta.typesig.vorthex</string>
+      <key>begin</key>
+      <string>\[</string>
+      <key>end</key>
+      <string>\]</string>
+      <key>beginCaptures</key>
+      <dict>
+        <key>0</key>
+        <dict><key>name</key><string>punctuation.section.typesig.begin.vorthex</string></dict>
+      </dict>
+      <key>endCaptures</key>
+      <dict>
+        <key>0</key>
+        <dict><key>name</key><string>punctuation.section.typesig.end.vorthex</string></dict>
+      </dict>
+      <key>patterns</key>
+      <array>
+        <dict>
+          <key>include</key>
+          <string>#type-names</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>keyword.operator.arrow.vorthex</string>
+          <key>match</key>
+          <string>→</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>punctuation.separator.pipe.vorthex</string>
+          <key>match</key>
+          <string>\|</string>
+        </dict>
+      </array>
+    </dict>
+
+    <!-- ── Type Names ─────────────────────────────────────────────────────── -->
+    <key>type-names</key>
+    <dict>
+      <key>patterns</key>
+      <array>
+        <dict>
+          <key>name</key>
+          <string>storage.type.natural.vorthex</string>
+          <key>match</key>
+          <string>ℕ</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>storage.type.integer.vorthex</string>
+          <key>match</key>
+          <string>ℤ</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>storage.type.float.vorthex</string>
+          <key>match</key>
+          <string>𝔽</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>storage.type.boolean.vorthex</string>
+          <key>match</key>
+          <string>𝔹</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>storage.type.top.vorthex</string>
+          <key>match</key>
+          <string>⊤</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>storage.type.bottom.vorthex</string>
+          <key>match</key>
+          <string>⊥</string>
+        </dict>
+      </array>
+    </dict>
+
+    <!-- ── String Literals ────────────────────────────────────────────────── -->
+    <key>string-literal</key>
+    <dict>
+      <key>name</key>
+      <string>string.quoted.guillemet.vorthex</string>
+      <key>begin</key>
+      <string>«</string>
+      <key>end</key>
+      <string>»</string>
+      <key>beginCaptures</key>
+      <dict>
+        <key>0</key>
+        <dict><key>name</key><string>punctuation.definition.string.begin.vorthex</string></dict>
+      </dict>
+      <key>endCaptures</key>
+      <dict>
+        <key>0</key>
+        <dict><key>name</key><string>punctuation.definition.string.end.vorthex</string></dict>
+      </dict>
+      <key>patterns</key>
+      <array>
+        <dict>
+          <key>name</key>
+          <string>constant.character.escape.vorthex</string>
+          <key>match</key>
+          <string>\\(?:[ntr\\«»])</string>
+        </dict>
+        <dict>
+          <key>name</key>
+          <string>invalid.illegal.escape.vorthex</string>
+          <key>match</key>
+          <string>\\[^ntr\\«»]</string>
+        </dict>
+      </array>
+    </dict>
+
+    <!-- ── Numeric Literals ───────────────────────────────────────────────── -->
+    <key>numeric-literals</key>
+    <dict>
+      <key>patterns</key>
+      <array>
+        <!-- Hex integer -->
+        <dict>
+          <key>name</key>
+          <string>constant.numeric.hex.vorthex</string>
+          <key>match</key>
+          <string>-?0[xX][0-9A-Fa-f]+</string>
+        </dict>
+        <!-- Float with exponent -->
+        <dict>
+          <key>name</key>
+          <string>constant.numeric.float.vorthex</string>
+          <key>match</key>
+          <string>-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?</string>
+        </dict>
+        <!-- Decimal integer -->
+        <dict>
+          <key>name</key>
+          <string>constant.numeric.integer.vorthex</string>
+          <key>match</key>
+          <string>-?[0-9]+</string>
+        </dict>
+      </array>
+    </dict>
+
+    <!-- ── Lattice Reads / Writes ─────────────────────────────────────────── -->
+    <key>lattice-access</key>
+    <dict>
+      <key>patterns</key>
+      <array>
+        <!-- Lattice read: ⟨x,y,z⟩ -->
+        <dict>
+          <key>name</key>
+          <string>meta.lattice.read.vorthex</string>
+          <key>match</key>
+          <string>⟨[^⟩]*⟩</string>
+          <key>captures</key>
+          <dict>
+            <key>0</key>
+            <dict><key>name</key><string>keyword.operator.lattice.read.vorthex</string></dict>
+          </dict>
+        </dict>
+        <!-- Lattice write: ⟩x,y,z⟨ -->
+        <dict>
+          <key>name</key>
+          <string>meta.lattice.write.vorthex</string>
+          <key>match</key>
+          <string>⟩[^⟨]*⟨</string>
+          <key>captures</key>
+          <dict>
+            <key>0</key>
+            <dict><key>name</key><string>keyword.operator.lattice.write.vorthex</string></dict>
+          </dict>
+        </dict>
+      </array>
+    </dict>
+
+    <!-- ── Arithmetic Operators ───────────────────────────────────────────── -->
+    <key>arithmetic-operators</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.operator.arithmetic.vorthex</string>
+      <key>match</key>
+      <string>[⊕⊖⊗⊙⌁ΔΔ∇Δ⌊⌈]</string>
+    </dict>
+
+    <!-- ── Comparison Operators ──────────────────────────────────────────── -->
+    <key>comparison-operators</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.operator.comparison.vorthex</string>
+      <key>match</key>
+      <string>[≡≠≺≻≈]</string>
+    </dict>
+
+    <!-- ── Logic Operators ───────────────────────────────────────────────── -->
+    <key>logic-operators</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.operator.logical.vorthex</string>
+      <key>match</key>
+      <string>[∧∨¬]</string>
+    </dict>
+
+    <!-- ── Bitwise Operators ─────────────────────────────────────────────── -->
+    <key>bitwise-operators</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.operator.bitwise.vorthex</string>
+      <key>match</key>
+      <string>[⊻⊼⊽∿∩∪]</string>
+    </dict>
+
+    <!-- ── Stack Operators ───────────────────────────────────────────────── -->
+    <key>stack-operators</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.operator.stack.vorthex</string>
+      <key>match</key>
+      <string>[⋄◇◈⧓⟲⟳↑↓⇑⇓⊂⊃⥊]</string>
+    </dict>
+
+    <!-- ── Dual-Stack Operators ──────────────────────────────────────────── -->
+    <key>dual-operators</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.operator.dual.vorthex</string>
+      <key>match</key>
+      <string>[⊛⋈⋉⋊]</string>
+    </dict>
+
+    <!-- ── Control Flow Operators ────────────────────────────────────────── -->
+    <key>control-operators</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.control.operator.vorthex</string>
+      <key>match</key>
+      <string>[⟁⊜]</string>
+    </dict>
+
+    <!-- ── I/O Operators ─────────────────────────────────────────────────── -->
+    <key>io-operators</key>
+    <dict>
+      <key>name</key>
+      <string>support.function.io.vorthex</string>
+      <key>match</key>
+      <string>[⊞⊟]</string>
+    </dict>
+
+    <!-- ── Higher-Order Operators ────────────────────────────────────────── -->
+    <key>higher-order-operators</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.operator.higher.vorthex</string>
+      <key>match</key>
+      <string>[∫∑∏∀∃⋯]</string>
+    </dict>
+
+    <!-- ── Lattice Operator ───────────────────────────────────────────────── -->
+    <key>lattice-operator</key>
+    <dict>
+      <key>name</key>
+      <string>keyword.operator.lattice.vorthex</string>
+      <key>match</key>
+      <string>⊘</string>
+    </dict>
+
+    <!-- ── Literal Constants ─────────────────────────────────────────────── -->
+    <key>literal-constants</key>
+    <dict>
+      <key>name</key>
+      <string>constant.language.vorthex</string>
+      <key>match</key>
+      <string>[∅∞]</string>
+    </dict>
+
+    <!-- ── Function Name (after ⦿) ───────────────────────────────────────── -->
+    <key>function-name</key>
+    <dict>
+      <key>name</key>
+      <string>entity.name.function.definition.vorthex</string>
+      <key>match</key>
+      <string>(?&lt;=⦿\s)[\w\u0080-\uFFFF]+</string>
+    </dict>
+
+    <!-- ── Function Call (identifier) ────────────────────────────────────── -->
+    <key>function-call</key>
+    <dict>
+      <key>name</key>
+      <string>support.function.call.vorthex</string>
+      <key>match</key>
+      <string>\b[A-Za-z_\u0080-\uFFFF][A-Za-z0-9_'\u0080-\uFFFF]*\b</string>
+    </dict>
+
+  </dict>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!--  TOP-LEVEL PATTERNS  (applied in order, first match wins)            -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+
+  <key>patterns</key>
+  <array>
+
+    <!-- 1. Comments (highest priority — may contain any other syntax) -->
+    <dict><key>include</key><string>#comments</string></dict>
+
+    <!-- 2. Checksum lines -->
+    <dict><key>include</key><string>#checksum</string></dict>
+
+    <!-- 3. Function open/close keywords -->
+    <dict><key>include</key><string>#function-keywords</string></dict>
+
+    <!-- 4. Type signatures (between [ and ]) -->
+    <dict><key>include</key><string>#type-signature</string></dict>
+
+    <!-- 5. String literals -->
+    <dict><key>include</key><string>#string-literal</string></dict>
+
+    <!-- 6. Lattice access expressions -->
+    <dict><key>include</key><string>#lattice-access</string></dict>
+
+    <!-- 7. Numeric literals (before identifier matching) -->
+    <dict><key>include</key><string>#numeric-literals</string></dict>
+
+    <!-- 8. Operators (before identifiers) -->
+    <dict><key>include</key><string>#arithmetic-operators</string></dict>
+    <dict><key>include</key><string>#comparison-operators</string></dict>
+    <dict><key>include</key><string>#logic-operators</string></dict>
+    <dict><key>include</key><string>#bitwise-operators</string></dict>
+    <dict><key>include</key><string>#stack-operators</string></dict>
+    <dict><key>include</key><string>#dual-operators</string></dict>
+    <dict><key>include</key><string>#control-operators</string></dict>
+    <dict><key>include</key><string>#io-operators</string></dict>
+    <dict><key>include</key><string>#higher-order-operators</string></dict>
+    <dict><key>include</key><string>#lattice-operator</string></dict>
+    <dict><key>include</key><string>#literal-constants</string></dict>
+
+    <!-- 9. Type names (standalone) -->
+    <dict><key>include</key><string>#type-names</string></dict>
+
+    <!-- 10. Function name after ⦿ -->
+    <dict><key>include</key><string>#function-name</string></dict>
+
+    <!-- 11. All other identifiers (function calls) -->
+    <dict><key>include</key><string>#function-call</string></dict>
+
+    <!-- 12. Illegal characters (tabs — fatal in VORTHEX) -->
+    <dict>
+      <key>name</key>
+      <string>invalid.illegal.tab.vorthex</string>
+      <key>match</key>
+      <string>\t</string>
+    </dict>
+
+  </array>
+
+</dict>
+</plist>

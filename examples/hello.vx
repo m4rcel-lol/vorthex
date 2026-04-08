@@ -1,0 +1,24 @@
+⟦ hello.vx — Hello World in VORTHEX
+  The simplest possible VORTHEX program.
+
+  Whitespace axes at play:
+    - This file uses 0-space indentation → global lattice scope
+    - All tokens start in columns 1-40 → Ω stack is the target
+    - No blank lines between statements → sequential execution (no RTQ)
+
+  Entropy: every ⟦ ... ⟧ comment is hashed (FNV-1a 32-bit) and XOR'd
+  into the entropy register ε.  These comments change program behavior
+  if the entropy register affects any operator used here.
+  The ⊞ operator is column-independent, so ε has no effect in this file.
+⟧
+
+⟦ Define a function that prints "Hello, World!" with a newline.
+  Type signature [ → | → ] means: consumes nothing, produces nothing.
+  The body pushes a string literal to Ω, then ⊞ pops and prints it. ⟧
+⦿ hello [ → | → ]
+  «Hello, World!\n» ⊞
+⌸0x9B6900C4
+⦾
+
+⟦ Top-level execution: call hello ⟧
+hello
