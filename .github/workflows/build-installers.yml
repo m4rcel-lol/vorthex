@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install build dependency
+      - name: Install build dependencies
         run: python -m pip install --upgrade pip cx_Freeze
 
       - name: Read version
@@ -118,9 +118,8 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.version.outputs.value }}"
           STAGE="stage"
-          ROOT="vorthex-${VERSION}-linux"
 
-          rm -rf "$STAGE" dist "$ROOT"
+          rm -rf "$STAGE" dist
           mkdir -p "$STAGE/usr/bin" "$STAGE/usr/lib/vorthex" "$STAGE/usr/share/vorthex"
 
           cp interpreter/vorthex.py "$STAGE/usr/lib/vorthex/vorthex.py"
@@ -136,9 +135,8 @@ jobs:
           chmod +x "$STAGE/usr/bin/vorthex"
 
           mkdir -p dist
-          cp -r "$STAGE" "$ROOT"
-          tar -C "$ROOT" -czf "dist/vorthex-${VERSION}-linux.tar.gz" .
-          tar -C "$ROOT" -cJf "dist/vorthex-${VERSION}-linux.tar.xz" .
+          tar -C "$STAGE" -czf "dist/vorthex-${VERSION}-linux.tar.gz" .
+          tar -C "$STAGE" -cJf "dist/vorthex-${VERSION}-linux.tar.xz" .
 
       - name: Build RPM package
         run: |
