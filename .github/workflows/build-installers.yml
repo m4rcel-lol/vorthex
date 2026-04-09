@@ -1,0 +1,182 @@
+name: Build Installers
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  windows-msi:
+    name: Windows MSI Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependency
+        run: python -m pip install --upgrade pip cx_Freeze
+
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $content = Get-Content -Path "interpreter/vorthex.py" -Raw
+          if ($content -match '__version__\s*=\s*"([^"]+)"') {
+            "value=$($matches[1])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          } else {
+            throw "Unable to find __version__ in interpreter/vorthex.py"
+          }
+
+      - name: Generate cx_Freeze setup script
+        shell: pwsh
+        run: |
+          @'
+          from cx_Freeze import Executable, setup
+
+          setup(
+              name="vorthex",
+              version="${{ steps.version.outputs.value }}",
+              description="VORTHEX programming language interpreter",
+              options={
+                  "build_exe": {
+                      "include_files": [
+                          ("examples", "examples"),
+                          ("stdlib", "stdlib"),
+                          ("docs", "docs"),
+                          ("spec", "spec"),
+                      ],
+                  }
+              },
+              executables=[
+                  Executable(
+                      script="interpreter/vorthex.py",
+                      target_name="vorthex.exe",
+                  )
+              ],
+          )
+          '@ | Set-Content -Path "setup.py"
+
+      - name: Build MSI
+        run: python setup.py bdist_msi
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vorthex-windows-msi
+          path: dist/*.msi
+          if-no-files-found: error
+
+  linux-packages:
+    name: Linux Packages (tar/rpm/pacman)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Read version
+        id: version
+        run: |
+          set -euo pipefail
+          VERSION="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          content = Path('interpreter/vorthex.py').read_text(encoding='utf-8')
+          m = re.search(r'__version__\s*=\s*"([^"]+)"', content)
+          if not m:
+              raise SystemExit('Unable to find __version__ in interpreter/vorthex.py')
+          print(m.group(1))
+          PY
+          )"
+          echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Install packaging tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev build-essential rpm
+          sudo gem install --no-document fpm
+
+      - name: Create install tree
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.value }}"
+          STAGE="stage"
+          ROOT="vorthex-${VERSION}-linux"
+
+          rm -rf "$STAGE" dist "$ROOT"
+          mkdir -p "$STAGE/usr/bin" "$STAGE/usr/lib/vorthex" "$STAGE/usr/share/vorthex"
+
+          cp interpreter/vorthex.py "$STAGE/usr/lib/vorthex/vorthex.py"
+          cp -r examples "$STAGE/usr/share/vorthex/examples"
+          cp -r stdlib "$STAGE/usr/share/vorthex/stdlib"
+          cp -r docs "$STAGE/usr/share/vorthex/docs"
+          cp -r spec "$STAGE/usr/share/vorthex/spec"
+
+          cat > "$STAGE/usr/bin/vorthex" <<'SH'
+          #!/usr/bin/env sh
+          exec python3 /usr/lib/vorthex/vorthex.py "$@"
+          SH
+          chmod +x "$STAGE/usr/bin/vorthex"
+
+          mkdir -p dist
+          cp -r "$STAGE" "$ROOT"
+          tar -C "$ROOT" -czf "dist/vorthex-${VERSION}-linux.tar.gz" .
+          tar -C "$ROOT" -cJf "dist/vorthex-${VERSION}-linux.tar.xz" .
+
+      - name: Build RPM package
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.value }}"
+          fpm -s dir -t rpm \
+            -n vorthex \
+            -v "$VERSION" \
+            --iteration 1 \
+            --architecture noarch \
+            --description "VORTHEX programming language interpreter" \
+            --depends python3 \
+            -C stage \
+            --package "dist/vorthex-${VERSION}-1.noarch.rpm" \
+            usr
+
+      - name: Build Arch Linux package
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.value }}"
+          fpm -s dir -t pacman \
+            -n vorthex \
+            -v "$VERSION" \
+            --iteration 1 \
+            --architecture any \
+            --description "VORTHEX programming language interpreter" \
+            --depends python \
+            -C stage \
+            --package "dist/vorthex-${VERSION}-1-any.pkg.tar.zst" \
+            usr
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vorthex-linux-packages
+          path: |
+            dist/*.tar.gz
+            dist/*.tar.xz
+            dist/*.rpm
+            dist/*.pkg.tar.zst
+          if-no-files-found: error
